@@ -310,3 +310,8 @@ def get_last_activity():
     finally:
         cursor.close()
         connection.close()
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="localhost", port=8000)
