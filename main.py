@@ -312,6 +312,30 @@ def get_last_activity():
         connection.close()
 
 
+@app.get("/services/status/{name}/{version}", response_model=str)
+def get_service_status(name: str, version: str):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            "SELECT service_status_id FROM service WHERE name = %s AND version = %s",
+            (name, version)
+        )
+        service_id_row = cursor.fetchone()
+        if not service_id_row:
+            raise HTTPException(status_code=404, detail="Service not found")
+        service_id = service_id_row["service_status_id"]
+        cursor.execute("SELECT status_name FROM service_status WHERE id = %s", (service_id,))
+        status_name_row = cursor.fetchone()
+        return status_name_row["status_name"]
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch service status: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
+
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="localhost", port=8000)
